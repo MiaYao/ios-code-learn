@@ -1,0 +1,11 @@
+    NSString *messageString = [NSString stringWithFormat:@"data %@",****];
+    
+    UIAlertController *alertGo = [UIAlertController alertControllerWithTitle:@"data" message:messageString preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *yes = [UIAlertAction actionWithTitle:@"ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {}];
+    [alertGo addAction: yes];
+    UIWindow *alertWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    alertWindow.rootViewController = [[UIViewController alloc] init];
+    alertWindow.windowLevel = UIWindowLevelAlert + 1;
+    [alertWindow makeKeyAndVisible];
+    [alertWindow.rootViewController presentViewController:alertGo animated:YES completion:nil];

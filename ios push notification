@@ -1,0 +1,74 @@
+#pragma mark - Remote Notification Delegate // <= iOS 9.x
+
+- (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings {
+    [application registerForRemoteNotifications];
+}
+
+/* Notification Registration */
+- (void)registerForRemoteNotification {
+    
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0)
+     {
+     [[UIApplication sharedApplication] registerUserNotificationSettings:[UIUserNotificationSettings settingsForTypes:(UIUserNotificationTypeSound | UIUserNotificationTypeAlert | UIUserNotificationTypeBadge) categories:nil]];
+     
+     [[UIApplication sharedApplication] registerForRemoteNotifications];
+     }
+     else
+     {
+        [[UIApplication sharedApplication] registerForRemoteNotificationTypes: (UIRemoteNotificationTypeNewsstandContentAvailability| UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
+     }
+    
+}
+
+/*save useful info by send them to php file then store into database*/
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken{
+    NSString *strDevicetoken = [[NSString alloc]initWithFormat:@"%@",[[[deviceToken description] stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"<>"]] stringByReplacingOccurrencesOfString:@" " withString:@""]];
+    UIDevice *deviceInfo = [UIDevice currentDevice];
+    NSString *deviceName = deviceInfo.name;
+    NSString * appName = @"";
+    NSLog(@"Device Token = %@",strDevicetoken);
+    //self.strDeviceToken = strDevicetoken;
+    
+    //re-format device token
+    strDevicetoken = [strDevicetoken stringByReplacingOccurrencesOfString:@" " withString:@""];
+    strDevicetoken = [strDevicetoken stringByReplacingOccurrencesOfString:@">" withString:@""];
+    strDevicetoken = [strDevicetoken stringByReplacingOccurrencesOfString:@"<" withString:@""];
+    
+    appName =[appName stringByReplacingOccurrencesOfString:@" " withString:@""];
+    appName = [appName stringByReplacingOccurrencesOfString:@">" withString:@""];
+    appName = [appName stringByReplacingOccurrencesOfString:@"<" withString:@""];
+    
+    deviceName = [deviceName stringByReplacingOccurrencesOfString:@" " withString:@""];
+    deviceName = [deviceName stringByReplacingOccurrencesOfString:@">" withString:@""];
+    deviceName = [deviceName stringByReplacingOccurrencesOfString:@"<" withString:@""];
+    deviceName = [deviceName stringByReplacingOccurrencesOfString:@"'" withString:@""];
+    
+    NSString *noteDataString = [NSString stringWithFormat:@"token=%@&appName=%@&deviceName=%@", strDevicetoken, appName,deviceName];
+    
+    NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    sessionConfiguration.HTTPAdditionalHeaders = @{
+                                                   @"api-key"       : @"API_KEY"
+                                                   };
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfiguration];
+    NSURL *url = [NSURL URLWithString:@"https://*********/getToken.php"];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+    request.HTTPBody = [noteDataString dataUsingEncoding:NSUTF8StringEncoding];
+    request.HTTPMethod = @"POST";
+    NSURLSessionDataTask *postDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        NSLog(@"Token is being sent successfully");// handle response
+        
+        // The server answers with an error because it doesn't receive the params
+    }];
+    [postDataTask resume];
+}
+
+-(void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+{
+    NSLog(@"Push Notification Information : %@",userInfo);
+}
+
+-(void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
+{
+    NSLog(@"%@ = %@", NSStringFromSelector(_cmd), error);
+    NSLog(@"Error = %@",error);
+}
